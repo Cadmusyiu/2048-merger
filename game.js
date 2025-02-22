@@ -206,8 +206,11 @@ document.getElementById('game-board').addEventListener('touchend', (e) => {
     }
 }, { passive: false });
 
-// Restart button
+// Restart button code with this
+let game = new Game(); // Declare game as a let instead of const
+
 document.getElementById('restart-btn').addEventListener('click', () => {
+    // Reinitialize the game
     game = new Game();
 });
 

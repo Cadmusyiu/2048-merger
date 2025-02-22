@@ -157,33 +157,60 @@ document.addEventListener('keydown', (e) => {
     }
 });
 
-// Touch controls for mobile
+// Updated touch controls
 let touchStartX = 0;
 let touchStartY = 0;
 
 document.addEventListener('touchstart', (e) => {
+    // Prevent default scroll behavior
+    e.preventDefault();
     touchStartX = e.touches[0].clientX;
     touchStartY = e.touches[0].clientY;
-});
+}, { passive: false });
+
+document.addEventListener('touchmove', (e) => {
+    // Prevent scrolling
+    e.preventDefault();
+}, { passive: false });
 
 document.addEventListener('touchend', (e) => {
+    // Prevent default browser behavior
+    e.preventDefault();
+    
     const touchEndX = e.changedTouches[0].clientX;
     const touchEndY = e.changedTouches[0].clientY;
 
     const diffX = touchEndX - touchStartX;
     const diffY = touchEndY - touchStartY;
 
-    // Determine swipe direction
+    // Determine swipe direction with a minimum threshold
+    const SWIPE_THRESHOLD = 50;
+    
     if (Math.abs(diffX) > Math.abs(diffY)) {
         // Horizontal swipe
-        if (diffX > 0) game.move('right');
-        else game.move('left');
+        if (Math.abs(diffX) > SWIPE_THRESHOLD) {
+            if (diffX > 0) game.move('right');
+            else game.move('left');
+        }
     } else {
         // Vertical swipe
-        if (diffY > 0) game.move('down');
-        else game.move('up');
+        if (Math.abs(diffY) > SWIPE_THRESHOLD) {
+            if (diffY > 0) game.move('down');
+            else game.move('up');
+        }
     }
-});
+}, { passive: false });
+
+// Prevent zooming and scrolling on mobile
+document.addEventListener('gesturestart', (e) => e.preventDefault());
+document.addEventListener('gesturechange', (e) => e.preventDefault());
+document.addEventListener('gestureend', (e) => e.preventDefault());
+
+// Add meta viewport tag for mobile responsiveness
+const metaViewport = document.createElement('meta');
+metaViewport.name = 'viewport';
+metaViewport.content = 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no';
+document.head.appendChild(metaViewport);
 
 // Restart button
 document.getElementById('restart-btn').addEventListener('click', () => {

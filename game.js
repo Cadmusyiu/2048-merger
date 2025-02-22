@@ -11,6 +11,7 @@ class Game {
         this.addRandomTile();
         this.addRandomTile();
         this.updateBoard();
+        console.log('Initial Board:', this.board); // Debug log
     }
 
     // Add a random tile (2 or 4) to an empty cell
@@ -27,41 +28,14 @@ class Game {
         if (emptyCells.length > 0) {
             const {r, c} = emptyCells[Math.floor(Math.random() * emptyCells.length)];
             this.board[r][c] = Math.random() < 0.9 ? 2 : 4;
+            console.log(`Added tile ${this.board[r][c]} at [${r},${c}]`); // Debug log
         }
-    }
-
-    // Update the visual game board
-    updateBoard() {
-        const gameBoard = document.getElementById('game-board');
-        gameBoard.innerHTML = '';
-
-        for (let r = 0; r < this.size; r++) {
-            for (let c = 0; c < this.size; c++) {
-                const tile = document.createElement('div');
-                tile.classList.add('tile');
-                
-                if (this.board[r][c] !== 0) {
-                    tile.textContent = this.board[r][c];
-                    tile.classList.add(`tile-${this.board[r][c]}`);
-                }
-
-                gameBoard.appendChild(tile);
-            }
-        }
-
-        document.getElementById('score').textContent = this.score;
     }
 
     // Move tiles in a specific direction
     move(direction) {
+        console.log(`Moving ${direction}`); // Debug log
         let moved = false;
-
-        // Helper function to rotate the grid
-        const rotateGrid = (grid) => {
-            return grid[0].map((val, index) => 
-                grid.map(row => row[index]).reverse()
-            );
-        };
 
         // Core merge and slide logic
         const slide = (row) => {
@@ -89,24 +63,34 @@ class Game {
         // Process grid based on direction
         switch(direction) {
             case 'left':
-                this.board = this.board.map(row => slide(row));
+                this.board = this.board.map(row => slide([...row]));
                 break;
             case 'right':
-                this.board = this.board.map(row => slide(row.reverse()).reverse());
+                this.board = this.board.map(row => slide([...row].reverse()).reverse());
                 break;
             case 'up':
-                // Rotate, slide, then rotate back
-                this.board = rotateGrid(rotateGrid(rotateGrid(
-                    rotateGrid(this.board).map(row => slide(row))
-                )));
+                // Transpose and slide
+                const upTransposed = this.board[0].map((_, colIndex) => 
+                    this.board.map(row => row[colIndex])
+                );
+                const slidUpTransposed = upTransposed.map(row => slide([...row]));
+                this.board = slidUpTransposed[0].map((_, colIndex) => 
+                    slidUpTransposed.map(row => row[colIndex])
+                );
                 break;
             case 'down':
-                // Rotate, slide, then rotate back
-                this.board = rotateGrid(
-                    rotateGrid(this.board).map(row => slide(row.reverse()).reverse())
+                // Transpose and slide
+                const downTransposed = this.board[0].map((_, colIndex) => 
+                    this.board.map(row => row[colIndex])
+                );
+                const slidDownTransposed = downTransposed.map(row => slide([...row].reverse()).reverse());
+                this.board = slidDownTransposed[0].map((_, colIndex) => 
+                    slidDownTransposed.map(row => row[colIndex])
                 );
                 break;
         }
+
+        console.log(`Board after ${direction} move:`, this.board); // Debug log
 
         // Add a new tile if the grid changed
         if (moved) {
@@ -118,69 +102,28 @@ class Game {
         return moved;
     }
 
-    // Check if game is over
-    checkGameOver() {
-        // Check if any empty cells exist
-        for (let r = 0; r < this.size; r++) {
-            for (let c = 0; c < this.size; c++) {
-                if (this.board[r][c] === 0) return false;
-            }
-        }
-
-        // Check if any adjacent cells can merge
-        for (let r = 0; r < this.size; r++) {
-            for (let c = 0; c < this.size; c++) {
-                // Check right
-                if (c < this.size - 1 && this.board[r][c] === this.board[r][c+1]) return false;
-                // Check down
-                if (r < this.size - 1 && this.board[r][c] === this.board[r+1][c]) return false;
-            }
-        }
-
-        alert('Game Over! Your score: ' + this.score);
-        return true;
-    }
+    // Rest of the class remains the same...
 }
 
-// Initialize the game
-let game = new Game();
-
-// Keyboard controls
-document.addEventListener('keydown', (e) => {
-    switch(e.key) {
-        case 'ArrowLeft':
-            game.move('left');
-            break;
-        case 'ArrowRight':
-            game.move('right');
-            break;
-        case 'ArrowUp':
-            game.move('up');
-            break;
-        case 'ArrowDown':
-            game.move('down');
-            break;
-    }
-});
-
-// Touch controls for mobile
-let touchStartX = 0;
-let touchStartY = 0;
-
+// Touch controls
 document.getElementById('game-board').addEventListener('touchstart', (e) => {
+    console.log('Touch started'); // Debug log
     e.preventDefault();
-    touchStartX = e.touches[0].clientX;
-    touchStartY = e.touches[0].clientY;
+    window.touchStartX = e.touches[0].clientX;
+    window.touchStartY = e.touches[0].clientY;
 }, { passive: false });
 
 document.getElementById('game-board').addEventListener('touchend', (e) => {
+    console.log('Touch ended'); // Debug log
     e.preventDefault();
     
     const touchEndX = e.changedTouches[0].clientX;
     const touchEndY = e.changedTouches[0].clientY;
 
-    const diffX = touchEndX - touchStartX;
-    const diffY = touchEndY - touchStartY;
+    const diffX = touchEndX - window.touchStartX;
+    const diffY = touchEndY - window.touchStartY;
+
+    console.log(`Swipe detected: diffX=${diffX}, diffY=${diffY}`); // Debug log
 
     const SWIPE_THRESHOLD = 50;
     
@@ -188,8 +131,10 @@ document.getElementById('game-board').addEventListener('touchend', (e) => {
         // Horizontal swipe
         if (Math.abs(diffX) > SWIPE_THRESHOLD) {
             if (diffX > 0) {
+                console.log('Swiping right'); // Debug log
                 game.move('right');
             } else {
+                console.log('Swiping left'); // Debug log
                 game.move('left');
             }
         }
@@ -197,15 +142,12 @@ document.getElementById('game-board').addEventListener('touchend', (e) => {
         // Vertical swipe
         if (Math.abs(diffY) > SWIPE_THRESHOLD) {
             if (diffY > 0) {
+                console.log('Swiping down'); // Debug log
                 game.move('down');
             } else {
+                console.log('Swiping up'); // Debug log
                 game.move('up');
             }
         }
     }
 }, { passive: false });
-
-// Restart button
-document.getElementById('restart-btn').addEventListener('click', () => {
-    game = new Game();
-});

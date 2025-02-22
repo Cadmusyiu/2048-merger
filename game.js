@@ -210,3 +210,58 @@ document.getElementById('game-board').addEventListener('touchend', (e) => {
 document.getElementById('restart-btn').addEventListener('click', () => {
     game = new Game();
 });
+
+// (Existing Game class definition)
+
+// (Existing keyboard controls)
+
+// NEW CODE: Add this at the very end of the file
+document.addEventListener('DOMContentLoaded', () => {
+    const gameBoard = document.getElementById('game-board');
+    let startX, startY;
+
+    gameBoard.addEventListener('touchstart', (e) => {
+        startX = e.touches[0].clientX;
+        startY = e.touches[0].clientY;
+    }, { passive: false });
+
+    gameBoard.addEventListener('touchend', (e) => {
+        if (!startX || !startY) return;
+
+        const endX = e.changedTouches[0].clientX;
+        const endY = e.changedTouches[0].clientY;
+
+        const diffX = endX - startX;
+        const diffY = endY - startY;
+
+        // Determine swipe direction
+        if (Math.abs(diffX) > Math.abs(diffY)) {
+            // Horizontal swipe
+            if (diffX > 0) {
+                alert('Right Swipe');  // Debugging
+                game.move('right');
+            } else {
+                alert('Left Swipe');  // Debugging
+                game.move('left');
+            }
+        } else {
+            // Vertical swipe
+            if (diffY > 0) {
+                alert('Down Swipe');  // Debugging
+                game.move('down');
+            } else {
+                alert('Up Swipe');  // Debugging
+                game.move('up');
+            }
+        }
+
+        // Reset start coordinates
+        startX = null;
+        startY = null;
+    }, { passive: false });
+
+    // Prevent default touch behaviors
+    gameBoard.addEventListener('touchmove', (e) => {
+        e.preventDefault();
+    }, { passive: false });
+});

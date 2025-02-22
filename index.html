@@ -6,12 +6,19 @@
     <title>One-Hand Merge Game</title>
     <link rel="stylesheet" href="styles.css">
     <style>
-        /* Prevent text selection and highlight */
+        /* Prevent text selection and scrolling */
         body {
+            overscroll-behavior: none;
+            touch-action: none;
+            -webkit-touch-callout: none;
             -webkit-user-select: none;
+            -khtml-user-select: none;
             -moz-user-select: none;
             -ms-user-select: none;
             user-select: none;
+        }
+        
+        #game-board {
             touch-action: none;
         }
     </style>
@@ -23,9 +30,9 @@
             <span>Score: <span id="score">0</span></span>
             <button id="restart-btn">Restart</button>
         </div>
-        <div id="game-board" style="touch-action: none;"></div>
+        <div id="game-board"></div>
         <div id="instructions">
-            <p>Use arrow keys or swipe to merge tiles!</p>
+            <p>Swipe or use arrow keys to play!</p>
         </div>
     </div>
     <script src="game.js"></script>

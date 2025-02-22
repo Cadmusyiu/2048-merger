@@ -157,23 +157,18 @@ document.addEventListener('keydown', (e) => {
     }
 });
 
-// Updated touch controls
+// Touch controls for mobile
 let touchStartX = 0;
 let touchStartY = 0;
 
-document.addEventListener('touchstart', (e) => {
+document.getElementById('game-board').addEventListener('touchstart', (e) => {
     // Prevent default scroll behavior
     e.preventDefault();
     touchStartX = e.touches[0].clientX;
     touchStartY = e.touches[0].clientY;
 }, { passive: false });
 
-document.addEventListener('touchmove', (e) => {
-    // Prevent scrolling
-    e.preventDefault();
-}, { passive: false });
-
-document.addEventListener('touchend', (e) => {
+document.getElementById('game-board').addEventListener('touchend', (e) => {
     // Prevent default browser behavior
     e.preventDefault();
     
@@ -189,28 +184,27 @@ document.addEventListener('touchend', (e) => {
     if (Math.abs(diffX) > Math.abs(diffY)) {
         // Horizontal swipe
         if (Math.abs(diffX) > SWIPE_THRESHOLD) {
-            if (diffX > 0) game.move('right');
-            else game.move('left');
+            if (diffX > 0) {
+                console.log('Swiping right');
+                game.move('right');
+            } else {
+                console.log('Swiping left');
+                game.move('left');
+            }
         }
     } else {
         // Vertical swipe
         if (Math.abs(diffY) > SWIPE_THRESHOLD) {
-            if (diffY > 0) game.move('down');
-            else game.move('up');
+            if (diffY > 0) {
+                console.log('Swiping down');
+                game.move('down');
+            } else {
+                console.log('Swiping up');
+                game.move('up');
+            }
         }
     }
 }, { passive: false });
-
-// Prevent zooming and scrolling on mobile
-document.addEventListener('gesturestart', (e) => e.preventDefault());
-document.addEventListener('gesturechange', (e) => e.preventDefault());
-document.addEventListener('gestureend', (e) => e.preventDefault());
-
-// Add meta viewport tag for mobile responsiveness
-const metaViewport = document.createElement('meta');
-metaViewport.name = 'viewport';
-metaViewport.content = 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no';
-document.head.appendChild(metaViewport);
 
 // Restart button
 document.getElementById('restart-btn').addEventListener('click', () => {

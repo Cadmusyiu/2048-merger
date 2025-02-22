@@ -1,4 +1,4 @@
-class Gamelogic {
+class Game {
     constructor(size = 4) {
         this.size = size;
         this.board = Array(size).fill().map(() => Array(size).fill(0));

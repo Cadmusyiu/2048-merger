@@ -211,57 +211,60 @@ document.getElementById('restart-btn').addEventListener('click', () => {
     game = new Game();
 });
 
-// (Existing Game class definition)
-
-// (Existing keyboard controls)
-
-// NEW CODE: Add this at the very end of the file
+// Add this at the end of game.js
 document.addEventListener('DOMContentLoaded', () => {
     const gameBoard = document.getElementById('game-board');
-    let startX, startY;
+    
+    // Log when event listeners are added
+    console.log('Touch event listeners being set up');
 
     gameBoard.addEventListener('touchstart', (e) => {
-        startX = e.touches[0].clientX;
-        startY = e.touches[0].clientY;
+        console.log('Touch start:', e.touches[0].clientX, e.touches[0].clientY);
+        e.preventDefault(); // Prevent default touch behavior
+    }, { passive: false });
+
+    gameBoard.addEventListener('touchmove', (e) => {
+        console.log('Touch move:', e.touches[0].clientX, e.touches[0].clientY);
+        e.preventDefault(); // Prevent scrolling
     }, { passive: false });
 
     gameBoard.addEventListener('touchend', (e) => {
-        if (!startX || !startY) return;
-
-        const endX = e.changedTouches[0].clientX;
-        const endY = e.changedTouches[0].clientY;
-
-        const diffX = endX - startX;
-        const diffY = endY - startY;
-
-        // Determine swipe direction
-        if (Math.abs(diffX) > Math.abs(diffY)) {
-            // Horizontal swipe
-            if (diffX > 0) {
-                alert('Right Swipe');  // Debugging
-                game.move('right');
-            } else {
-                alert('Left Swipe');  // Debugging
-                game.move('left');
-            }
-        } else {
-            // Vertical swipe
-            if (diffY > 0) {
-                alert('Down Swipe');  // Debugging
-                game.move('down');
-            } else {
-                alert('Up Swipe');  // Debugging
-                game.move('up');
-            }
+        console.log('Touch end detected');
+        
+        // Ensure a global game object exists
+        if (typeof game === 'undefined') {
+            console.error('Game object not found');
+            return;
         }
 
-        // Reset start coordinates
-        startX = null;
-        startY = null;
+        const touch = e.changedTouches[0];
+        const endX = touch.clientX;
+        const endY = touch.clientY;
+
+        console.log('Touch end coordinates:', endX, endY);
+
+        // Simplified swipe detection
+        const swipeThreshold = 50;
+        const swipeDirection = Math.abs(endX - startX) > Math.abs(endY - startY)
+            ? (endX > startX ? 'right' : 'left')
+            : (endY > startY ? 'down' : 'up');
+
+        console.log('Detected swipe direction:', swipeDirection);
+
+        // Attempt to move
+        try {
+            game.move(swipeDirection);
+            console.log('Move attempted:', swipeDirection);
+        } catch (error) {
+            console.error('Error moving:', error);
+        }
     }, { passive: false });
 
-    // Prevent default touch behaviors
-    gameBoard.addEventListener('touchmove', (e) => {
-        e.preventDefault();
-    }, { passive: false });
+    // Track start coordinates globally
+    let startX, startY;
+    gameBoard.addEventListener('touchstart', (e) => {
+        startX = e.touches[0].clientX;
+        startY = e.touches[0].clientY;
+        console.log('Start coordinates:', startX, startY);
+    });
 });

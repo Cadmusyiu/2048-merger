@@ -2,9 +2,19 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>One-Hand Merge Game</title>
     <link rel="stylesheet" href="styles.css">
+    <style>
+        /* Prevent text selection and highlight */
+        body {
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            touch-action: none;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
@@ -15,7 +25,7 @@
         </div>
         <div id="game-board"></div>
         <div id="instructions">
-            <p>Swipe or use arrow keys to merge tiles!</p>
+            <p>Use arrow keys or swipe to merge tiles!</p>
         </div>
     </div>
     <script src="game.js"></script>

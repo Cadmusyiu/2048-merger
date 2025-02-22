@@ -1,4 +1,4 @@
-class Game {
+class Gamelogic {
     constructor(size = 4) {
         this.size = size;
         this.board = Array(size).fill().map(() => Array(size).fill(0));
@@ -54,63 +54,67 @@ class Game {
 
     // Move tiles in a specific direction
     move(direction) {
-        let moved = false;
+    let moved = false;
 
-        const rotate = (matrix) => {
-            return matrix[0].map((val, index) => 
-                matrix.map(row => row[index]).reverse()
+    // Helper function to rotate the grid
+    const rotateGrid = (grid) => {
+        return grid[0].map((val, index) => 
+            grid.map(row => row[index]).reverse()
+        );
+    };
+
+    // Core merge and slide logic
+    const slide = (row) => {
+        // Remove zeros
+        row = row.filter(val => val !== 0);
+        
+        // Merge adjacent equal tiles
+        for (let i = 0; i < row.length - 1; i++) {
+            if (row[i] === row[i + 1]) {
+                row[i] *= 2;  // Merge tiles
+                row.splice(i + 1, 1);  // Remove the merged tile
+                this.score += row[i];  // Update score
+                moved = true;
+            }
+        }
+        
+        // Pad with zeros to maintain grid size
+        while (row.length < this.gridSize) {
+            row.push(0);
+        }
+        
+        return row;
+    };
+
+    // Process grid based on direction
+    switch(direction) {
+        case 'left':
+            this.grid = this.grid.map(row => slide(row));
+            break;
+        case 'right':
+            this.grid = this.grid.map(row => slide(row.reverse()).reverse());
+            break;
+        case 'up':
+            // Rotate, slide, then rotate back
+            this.grid = rotateGrid(rotateGrid(rotateGrid(
+                rotateGrid(this.grid).map(row => slide(row))
+            )));
+            break;
+        case 'down':
+            // Rotate, slide, then rotate back
+            this.grid = rotateGrid(
+                rotateGrid(this.grid).map(row => slide(row.reverse()).reverse())
             );
-        };
-
-        const slide = (row) => {
-            // Remove zeros
-            row = row.filter(val => val !== 0);
-            
-            // Merge tiles
-            for (let i = 0; i < row.length - 1; i++) {
-                if (row[i] === row[i+1]) {
-                    row[i] *= 2;
-                    this.score += row[i];
-                    row.splice(i+1, 1);
-                    moved = true;
-                }
-            }
-
-            // Pad with zeros
-            while (row.length < this.size) {
-                row.push(0);
-            }
-
-            return row;
-        };
-
-        // Rotate board based on direction
-        switch(direction) {
-            case 'left':
-                this.board = this.board.map(row => slide(row));
-                break;
-            case 'right':
-                this.board = this.board.map(row => slide(row.reverse()).reverse());
-                break;
-            case 'up':
-                this.board = rotate(rotate(rotate(
-                    rotate(this.board).map(row => slide(row))
-                )));
-                break;
-            case 'down':
-                this.board = rotate(
-                    rotate(this.board).map(row => slide(row.reverse()).reverse())
-                );
-                break;
-        }
-
-        // Add a new tile if the board changed
-        if (moved) {
-            this.addRandomTile();
-            this.updateBoard();
-            this.checkGameOver();
-        }
+            break;
     }
+
+    // Add a new tile if the grid changed
+    if (moved) {
+        this.addRandomTile();
+    }
+
+    return moved;
+}
 
     // Check if game is over
     checkGameOver() {

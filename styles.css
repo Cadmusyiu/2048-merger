@@ -35,30 +35,6 @@ body {
     transition: all 0.2s ease;
 }
 
-#score-container {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 20px;
-    font-size: 24px;
-}
-
-#restart-btn {
-    background-color: #8f7a66;
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 5px;
-    cursor: pointer;
-}
-
 .tile-2 { background-color: #eee4da; }
 .tile-4 { background-color: #ede0c8; }
-.tile-8 { background-color: #f2b179; color: white; }
-.tile-16 { background-color: #f59563; color: white; }
-.tile-32 { background-color: #f67c5f; color: white; }
-.tile-64 { background-color: #f65e3b; color: white; }
-.tile-128 { background-color: #edcf72; color: white; }
-.tile-256 { background-color: #edcc61; color: white; }
-.tile-512 { background-color: #edc850; color: white; }
-.tile-1024 { background-color: #edc53f; color: white; }
-.tile-2048 { background-color: #edc22e; color: white; }
+/* Add more tile colors as needed */

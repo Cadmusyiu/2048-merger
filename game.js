@@ -54,67 +54,69 @@ class Game {
 
     // Move tiles in a specific direction
     move(direction) {
-    let moved = false;
+        let moved = false;
 
-    // Helper function to rotate the grid
-    const rotateGrid = (grid) => {
-        return grid[0].map((val, index) => 
-            grid.map(row => row[index]).reverse()
-        );
-    };
-
-    // Core merge and slide logic
-    const slide = (row) => {
-        // Remove zeros
-        row = row.filter(val => val !== 0);
-        
-        // Merge adjacent equal tiles
-        for (let i = 0; i < row.length - 1; i++) {
-            if (row[i] === row[i + 1]) {
-                row[i] *= 2;  // Merge tiles
-                row.splice(i + 1, 1);  // Remove the merged tile
-                this.score += row[i];  // Update score
-                moved = true;
-            }
-        }
-        
-        // Pad with zeros to maintain grid size
-        while (row.length < this.gridSize) {
-            row.push(0);
-        }
-        
-        return row;
-    };
-
-    // Process grid based on direction
-    switch(direction) {
-        case 'left':
-            this.grid = this.grid.map(row => slide(row));
-            break;
-        case 'right':
-            this.grid = this.grid.map(row => slide(row.reverse()).reverse());
-            break;
-        case 'up':
-            // Rotate, slide, then rotate back
-            this.grid = rotateGrid(rotateGrid(rotateGrid(
-                rotateGrid(this.grid).map(row => slide(row))
-            )));
-            break;
-        case 'down':
-            // Rotate, slide, then rotate back
-            this.grid = rotateGrid(
-                rotateGrid(this.grid).map(row => slide(row.reverse()).reverse())
+        // Helper function to rotate the grid
+        const rotateGrid = (grid) => {
+            return grid[0].map((val, index) => 
+                grid.map(row => row[index]).reverse()
             );
-            break;
-    }
+        };
 
-    // Add a new tile if the grid changed
-    if (moved) {
-        this.addRandomTile();
-    }
+        // Core merge and slide logic
+        const slide = (row) => {
+            // Remove zeros
+            row = row.filter(val => val !== 0);
+            
+            // Merge adjacent equal tiles
+            for (let i = 0; i < row.length - 1; i++) {
+                if (row[i] === row[i + 1]) {
+                    row[i] *= 2;  // Merge tiles
+                    row.splice(i + 1, 1);  // Remove the merged tile
+                    this.score += row[i];  // Update score
+                    moved = true;
+                }
+            }
+            
+            // Pad with zeros to maintain grid size
+            while (row.length < this.size) {
+                row.push(0);
+            }
+            
+            return row;
+        };
 
-    return moved;
-}
+        // Process grid based on direction
+        switch(direction) {
+            case 'left':
+                this.board = this.board.map(row => slide(row));
+                break;
+            case 'right':
+                this.board = this.board.map(row => slide(row.reverse()).reverse());
+                break;
+            case 'up':
+                // Rotate, slide, then rotate back
+                this.board = rotateGrid(rotateGrid(rotateGrid(
+                    rotateGrid(this.board).map(row => slide(row))
+                )));
+                break;
+            case 'down':
+                // Rotate, slide, then rotate back
+                this.board = rotateGrid(
+                    rotateGrid(this.board).map(row => slide(row.reverse()).reverse())
+                );
+                break;
+        }
+
+        // Add a new tile if the grid changed
+        if (moved) {
+            this.addRandomTile();
+            this.updateBoard();
+            this.checkGameOver();
+        }
+
+        return moved;
+    }
 
     // Check if game is over
     checkGameOver() {
@@ -141,7 +143,7 @@ class Game {
 }
 
 // Initialize the game
-const game = new Game();
+let game = new Game();
 
 // Keyboard controls
 document.addEventListener('keydown', (e) => {
@@ -166,14 +168,12 @@ let touchStartX = 0;
 let touchStartY = 0;
 
 document.getElementById('game-board').addEventListener('touchstart', (e) => {
-    // Prevent default scroll behavior
     e.preventDefault();
     touchStartX = e.touches[0].clientX;
     touchStartY = e.touches[0].clientY;
 }, { passive: false });
 
 document.getElementById('game-board').addEventListener('touchend', (e) => {
-    // Prevent default browser behavior
     e.preventDefault();
     
     const touchEndX = e.changedTouches[0].clientX;
@@ -182,17 +182,14 @@ document.getElementById('game-board').addEventListener('touchend', (e) => {
     const diffX = touchEndX - touchStartX;
     const diffY = touchEndY - touchStartY;
 
-    // Determine swipe direction with a minimum threshold
     const SWIPE_THRESHOLD = 50;
     
     if (Math.abs(diffX) > Math.abs(diffY)) {
         // Horizontal swipe
         if (Math.abs(diffX) > SWIPE_THRESHOLD) {
             if (diffX > 0) {
-                console.log('Swiping right');
                 game.move('right');
             } else {
-                console.log('Swiping left');
                 game.move('left');
             }
         }
@@ -200,78 +197,15 @@ document.getElementById('game-board').addEventListener('touchend', (e) => {
         // Vertical swipe
         if (Math.abs(diffY) > SWIPE_THRESHOLD) {
             if (diffY > 0) {
-                console.log('Swiping down');
                 game.move('down');
             } else {
-                console.log('Swiping up');
                 game.move('up');
             }
         }
     }
 }, { passive: false });
 
-// Restart button code with this
-let game = new Game(); // Declare game as a let instead of const
-
+// Restart button
 document.getElementById('restart-btn').addEventListener('click', () => {
-    // Reinitialize the game
     game = new Game();
-});
-
-// Add this at the end of game.js
-document.addEventListener('DOMContentLoaded', () => {
-    const gameBoard = document.getElementById('game-board');
-    
-    // Log when event listeners are added
-    console.log('Touch event listeners being set up');
-
-    gameBoard.addEventListener('touchstart', (e) => {
-        console.log('Touch start:', e.touches[0].clientX, e.touches[0].clientY);
-        e.preventDefault(); // Prevent default touch behavior
-    }, { passive: false });
-
-    gameBoard.addEventListener('touchmove', (e) => {
-        console.log('Touch move:', e.touches[0].clientX, e.touches[0].clientY);
-        e.preventDefault(); // Prevent scrolling
-    }, { passive: false });
-
-    gameBoard.addEventListener('touchend', (e) => {
-        console.log('Touch end detected');
-        
-        // Ensure a global game object exists
-        if (typeof game === 'undefined') {
-            console.error('Game object not found');
-            return;
-        }
-
-        const touch = e.changedTouches[0];
-        const endX = touch.clientX;
-        const endY = touch.clientY;
-
-        console.log('Touch end coordinates:', endX, endY);
-
-        // Simplified swipe detection
-        const swipeThreshold = 50;
-        const swipeDirection = Math.abs(endX - startX) > Math.abs(endY - startY)
-            ? (endX > startX ? 'right' : 'left')
-            : (endY > startY ? 'down' : 'up');
-
-        console.log('Detected swipe direction:', swipeDirection);
-
-        // Attempt to move
-        try {
-            game.move(swipeDirection);
-            console.log('Move attempted:', swipeDirection);
-        } catch (error) {
-            console.error('Error moving:', error);
-        }
-    }, { passive: false });
-
-    // Track start coordinates globally
-    let startX, startY;
-    gameBoard.addEventListener('touchstart', (e) => {
-        startX = e.touches[0].clientX;
-        startY = e.touches[0].clientY;
-        console.log('Start coordinates:', startX, startY);
-    });
 });

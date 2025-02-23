@@ -53,7 +53,7 @@ class Game {
             }
         }
 
-        document.getElementById('score').textContent = this.score;
+        document.getElementById('score-value').textContent = this.score;
     }
 
     move(direction) {

@@ -2,46 +2,88 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>One-Hand Merge Game</title>
     <style>
+        * {
+            box-sizing: border-box;
+            touch-action: none;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
         body {
             font-family: Arial, sans-serif;
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 100vh;
             margin: 0;
+            height: 100vh;
             background-color: #f0f0f0;
+            overflow: hidden;
         }
 
         .container {
+            width: 100%;
+            max-width: 375px; /* iPhone 15 Pro width */
+            padding: 20px;
             text-align: center;
         }
 
         #game-board {
             display: grid;
-            grid-template-columns: repeat(4, 100px);
-            grid-gap: 10px;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
             background-color: #bbada0;
-            border-radius: 5px;
+            border-radius: 10px;
             padding: 10px;
+            width: 100%;
+            aspect-ratio: 1 / 1;
         }
 
         .tile {
-            width: 100px;
-            height: 100px;
+            aspect-ratio: 1 / 1;
             background-color: #cdc1b4;
             border-radius: 5px;
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 36px;
+            font-size: 24px;
             font-weight: bold;
             color: #776e65;
             transition: all 0.2s ease;
         }
 
+        #score-container {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+
+        #score, #best-score {
+            background-color: #bbada0;
+            padding: 10px;
+            border-radius: 5px;
+            min-width: 100px;
+        }
+
+        #restart-btn {
+            background-color: #8f7a66;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        /* Responsive font sizes */
+        @media screen and (max-width: 375px) {
+            .tile {
+                font-size: 18px;
+            }
+        }
+
+        /* Color classes for different tile values */
         .tile-2 { background-color: #eee4da; }
         .tile-4 { background-color: #ede0c8; }
         .tile-8 { background-color: #f2b179; color: white; }
@@ -57,9 +99,8 @@
 </head>
 <body>
     <div class="container">
-        <h1>One-Hand Merge Game</h1>
         <div id="score-container">
-            <span>Score: <span id="score">0</span></span>
+            <div id="score">Score: <span id="score-value">0</span></div>
             <button id="restart-btn">Restart</button>
         </div>
         <div id="game-board"></div>

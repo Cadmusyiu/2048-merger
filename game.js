@@ -55,76 +55,77 @@ class Game {
     }
 
     move(direction) {
-        const previousBoard = this.board.map(row => [...row]);
-        let moved = false;
+    const previousBoard = this.board.map(row => [...row]);
+    let moved = false;
 
-        const slide = (row) => {
-            // Remove zeros
-            row = row.filter(val => val !== 0);
-            
-            // Merge tiles that can create 24
-            for (let i = 0; i < row.length - 1; i++) {
-                if (row[i] + row[i + 1] === 24) {
-                    row[i] = 24;
-                    row.splice(i + 1, 1);
-                    this.score += 24;
-                    moved = true;
-                    break;
-                }
-            }
-            
-            // Pad with zeros
-            while (row.length < this.size) {
-                row.push(0);
-            }
-            
-            return row;
-        };
-
-        switch(direction) {
-            case 'left':
-                this.board = this.board.map(row => slide(row));
-                break;
-            case 'right':
-                this.board = this.board.map(row => slide([...row].reverse()).reverse());
-                break;
-            case 'up':
-                const upTransposed = this.board[0].map((_, colIndex) => 
-                    this.board.map(row => row[colIndex])
-                );
-                const slidUpTransposed = upTransposed.map(row => slide(row));
-                this.board = slidUpTransposed[0].map((_, colIndex) => 
-                    slidUpTransposed.map(row => row[colIndex])
-                );
-                break;
-            case 'down':
-                const downTransposed = this.board[0].map((_, colIndex) => 
-                    this.board.map(row => row[colIndex])
-                );
-                const slidDownTransposed = downTransposed.map(row => slide([...row].reverse()).reverse());
-                this.board = slidDownTransposed[0].map((_, colIndex) => 
-                    slidDownTransposed.map(row => row[colIndex])
-                );
-                break;
-        }
-
-        // Check if board changed
-        const boardChanged = !this.board.every((row, rowIndex) => 
-            row.every((cell, colIndex) => cell === previousBoard[rowIndex][colIndex])
-        );
-
-        if (boardChanged) {
-            this.addRandomTile();
-            this.updateBoard();
-            
-            // Check if no more moves are possible
-            if (!this.hasPossibleMoves()) {
-                this.gameOver();
+    const slide = (row) => {
+        // Remove zeros
+        row = row.filter(val => val !== 0);
+        
+        // Merge tiles
+        for (let i = 0; i < row.length - 1; i++) {
+            if (row[i] === row[i + 1]) {
+                row[i] *= 2;  // Merge tiles
+                row.splice(i + 1, 1);
+                this.score += row[i];
+                moved = true;
             }
         }
+        
+        // Pad with zeros
+        while (row.length < this.size) {
+            row.push(0);
+        }
+        
+        return row;
+    };
 
-        return boardChanged;
+    switch(direction) {
+        case 'left':
+            this.board = this.board.map(row => slide(row));
+            break;
+        case 'right':
+            this.board = this.board.map(row => slide([...row].reverse()).reverse());
+            break;
+        case 'up':
+            // Transpose and slide
+            const upTransposed = this.board[0].map((_, colIndex) => 
+                this.board.map(row => row[colIndex])
+            );
+            const slidUpTransposed = upTransposed.map(row => slide(row));
+            this.board = slidUpTransposed[0].map((_, colIndex) => 
+                slidUpTransposed.map(row => row[colIndex])
+            );
+            break;
+        case 'down':
+            // Transpose and slide
+            const downTransposed = this.board[0].map((_, colIndex) => 
+                this.board.map(row => row[colIndex])
+            );
+            const slidDownTransposed = downTransposed.map(row => slide([...row].reverse()).reverse());
+            this.board = slidDownTransposed[0].map((_, colIndex) => 
+                slidDownTransposed.map(row => row[colIndex])
+            );
+            break;
     }
+
+    // Check if board changed
+    const boardChanged = !this.board.every((row, rowIndex) => 
+        row.every((cell, colIndex) => cell === previousBoard[rowIndex][colIndex])
+    );
+
+    if (boardChanged) {
+        this.addRandomTile();
+        this.updateBoard();
+        
+        // Check if no more moves are possible
+        if (!this.hasPossibleMoves()) {
+            this.gameOver();
+        }
+    }
+
+    return boardChanged;
+}
 
     hasPossibleMoves() {
         // Check if any empty cells exist

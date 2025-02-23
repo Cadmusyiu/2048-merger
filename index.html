@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>One-Hand Merge</title>
+    <title>2048 Grip</title>
     <style>
         * {
             box-sizing: border-box;
@@ -76,9 +76,21 @@
             justify-content: center;
             align-items: center;
             font-size: 18px;
-            color: #777;
             font-weight: bold;
         }
+
+        /* Tile color schemes */
+        .tile-2 { background-color: #eee4da; color: #776e65; }
+        .tile-4 { background-color: #ede0c8; color: #776e65; }
+        .tile-8 { background-color: #f2b179; color: white; }
+        .tile-16 { background-color: #f59563; color: white; }
+        .tile-32 { background-color: #f67c5f; color: white; }
+        .tile-64 { background-color: #f65e3b; color: white; }
+        .tile-128 { background-color: #edcf72; color: white; }
+        .tile-256 { background-color: #edcc61; color: white; }
+        .tile-512 { background-color: #edc850; color: white; }
+        .tile-1024 { background-color: #edc53f; color: white; }
+        .tile-2048 { background-color: #edc22e; color: white; }
 
         #instructions {
             margin-top: 15px;
@@ -89,9 +101,9 @@
 </head>
 <body>
     <div class="container">
-        <div class="game-title">One-Hand Merge</div>
+        <div class="game-title">2048 Grip</div>
         <div class="header">
-            <div id="score">Score: <span id="score-value">0</span></div>
+            <div id="score">Score XXX: <span id="score-value">0</span></div>
             <button id="restart-btn">Restart</button>
         </div>
         <div id="game-board"></div>

@@ -3,6 +3,7 @@ class Game {
         this.size = size;
         this.board = this.createEmptyBoard();
         this.score = 0;
+        this.highScores = this.getHighScores();
         this.initializeBoard();
     }
 
@@ -28,10 +29,7 @@ class Game {
 
         if (emptyCells.length > 0) {
             const {r, c} = emptyCells[Math.floor(Math.random() * emptyCells.length)];
-            this.board[r][c] = Math.random() < 0.9 ? 2 : 4;
-            console.log(`Added tile ${this.board[r][c]} at [${r},${c}]`);
-        } else {
-            console.log('No empty cells to add new tile');
+            this.board[r][c] = Math.random() < 0.9 ? 2 : 8;
         }
     }
 
@@ -57,25 +55,21 @@ class Game {
     }
 
     move(direction) {
-        console.log(`Moving ${direction}`);
-        console.log('Initial board:', this.board);
-
-        // Create a deep copy of the current board
         const previousBoard = this.board.map(row => [...row]);
         let moved = false;
 
-        // Slide and merge logic
         const slide = (row) => {
             // Remove zeros
             row = row.filter(val => val !== 0);
             
-            // Merge adjacent equal tiles
+            // Merge tiles that can create 24
             for (let i = 0; i < row.length - 1; i++) {
-                if (row[i] === row[i + 1]) {
-                    row[i] *= 2;
-                    this.score += row[i];
+                if (row[i] + row[i + 1] === 24) {
+                    row[i] = 24;
                     row.splice(i + 1, 1);
+                    this.score += 24;
                     moved = true;
+                    break;
                 }
             }
             
@@ -87,7 +81,6 @@ class Game {
             return row;
         };
 
-        // Movement logic for different directions
         switch(direction) {
             case 'left':
                 this.board = this.board.map(row => slide(row));
@@ -96,7 +89,6 @@ class Game {
                 this.board = this.board.map(row => slide([...row].reverse()).reverse());
                 break;
             case 'up':
-                // Transpose and slide
                 const upTransposed = this.board[0].map((_, colIndex) => 
                     this.board.map(row => row[colIndex])
                 );
@@ -106,7 +98,6 @@ class Game {
                 );
                 break;
             case 'down':
-                // Transpose and slide
                 const downTransposed = this.board[0].map((_, colIndex) => 
                     this.board.map(row => row[colIndex])
                 );
@@ -117,36 +108,82 @@ class Game {
                 break;
         }
 
-        console.log('Board after move:', this.board);
-
-        // Check for empty cells
-        const emptyCell = this.hasEmptyCell();
-        console.log('Has empty cell:', emptyCell);
-
-        // Check if the board actually changed
+        // Check if board changed
         const boardChanged = !this.board.every((row, rowIndex) => 
             row.every((cell, colIndex) => cell === previousBoard[rowIndex][colIndex])
         );
-        console.log('Board changed:', boardChanged);
 
-        // Always try to add a new tile if there's an empty cell
-        if (emptyCell) {
+        if (boardChanged) {
             this.addRandomTile();
+            this.updateBoard();
+            
+            // Check if no more moves are possible
+            if (!this.hasPossibleMoves()) {
+                this.gameOver();
+            }
         }
-        
-        this.updateBoard();
+
         return boardChanged;
     }
 
-    hasEmptyCell() {
+    hasPossibleMoves() {
+        // Check if any empty cells exist
         for (let r = 0; r < this.size; r++) {
             for (let c = 0; c < this.size; c++) {
-                if (this.board[r][c] === 0) {
-                    return true;
-                }
+                if (this.board[r][c] === 0) return true;
             }
         }
+
+        // Check if any adjacent cells can merge to 24
+        for (let r = 0; r < this.size; r++) {
+            for (let c = 0; c < this.size; c++) {
+                // Check right
+                if (c < this.size - 1 && 
+                    this.board[r][c] + this.board[r][c+1] === 24) return true;
+                // Check down
+                if (r < this.size - 1 && 
+                    this.board[r][c] + this.board[r+1][c] === 24) return true;
+            }
+        }
+
         return false;
+    }
+
+    gameOver() {
+        // Update high scores
+        this.highScores.push(this.score);
+        this.highScores.sort((a, b) => b - a);
+        this.highScores = this.highScores.slice(0, 5);
+        this.saveHighScores();
+
+        // Show game over modal
+        const modal = document.getElementById('game-over-modal');
+        const finalScoreElem = document.getElementById('final-score');
+        const rankingList = document.getElementById('ranking-list');
+
+        finalScoreElem.textContent = this.score;
+
+        // Populate high scores
+        rankingList.innerHTML = '';
+        this.highScores.forEach((score, index) => {
+            const li = document.createElement('li');
+            li.innerHTML = `
+                <span>Rank ${index + 1}</span>
+                <span>${score}</span>
+            `;
+            rankingList.appendChild(li);
+        });
+
+        modal.style.display = 'flex';
+    }
+
+    getHighScores() {
+        const scores = localStorage.getItem('24GripHighScores');
+        return scores ? JSON.parse(scores) : [];
+    }
+
+    saveHighScores() {
+        localStorage.setItem('24GripHighScores', JSON.stringify(this.highScores));
     }
 }
 
@@ -212,6 +249,12 @@ document.getElementById('game-board').addEventListener('touchend', (e) => {
         }
     }
 }, { passive: false });
+
+// Close game over modal
+document.getElementById('close-modal').addEventListener('click', () => {
+    document.getElementById('game-over-modal').style.display = 'none';
+    game = new Game();
+});
 
 // Restart button
 document.getElementById('restart-btn').addEventListener('click', () => {

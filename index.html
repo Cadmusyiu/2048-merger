@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>2048 Grip</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700&display=swap" rel="stylesheet">
     <style>
         * {
             box-sizing: border-box;
@@ -15,7 +16,7 @@
         }
 
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Nunito', Arial, sans-serif;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -64,6 +65,7 @@
             padding: 8px 12px;
             border-radius: 8px;
             cursor: pointer;
+            font-family: 'Nunito', sans-serif;
         }
 
         #game-board {
@@ -83,13 +85,25 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 18px;
+            font-family: 'Nunito', sans-serif;
+            font-size: 27px; /* 50% larger than previous size */
             font-weight: bold;
+            color: #333;
         }
 
+        /* Tile color schemes */
         .tile-2 { background: linear-gradient(135deg, #ffa07a, #ff7f50); color: white; }
         .tile-4 { background: linear-gradient(135deg, #98fb98, #90ee90); color: white; }
         .tile-8 { background: linear-gradient(135deg, #87cefa, #4169e1); color: white; }
+        .tile-16 { background: linear-gradient(135deg, #dda0dd, #da70d6); color: white; }
+        .tile-32 { background: linear-gradient(135deg, #f0e68c, #ffd700); color: white; }
+        .tile-64 { background: linear-gradient(135deg, #ff6347, #ff4500); color: white; }
+
+        #instructions {
+            margin-top: 15px;
+            color: #666;
+            font-size: 14px;
+        }
 
         #game-over-modal {
             display: none;
@@ -110,6 +124,7 @@
             border-radius: 12px;
             text-align: center;
             width: 300px;
+            font-family: 'Nunito', sans-serif;
         }
 
         #ranking-list {

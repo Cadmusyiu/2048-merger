@@ -7,6 +7,8 @@ A polished take on the classic sliding-number puzzle — merge equal tiles to wo
 ## Features
 
 - **Smooth sliding animation** — tiles glide, newly spawned tiles pop in, merged tiles bounce
+- **One-step Undo** — take back your last move, even out of a game over (accidental-swipe insurance)
+- **Score gain popup** — every merge floats a `+N` so you see what each move earned
 - **Correct game-over detection** — knows when no moves remain (adjacent equal tiles / empty cells)
 - **Win state at 2048** — celebrate, then keep playing for a higher score
 - **Best score + top-5 high scores** — persisted in `localStorage`
@@ -30,7 +32,7 @@ The core move/merge logic is DOM-free and unit-tested:
 node test-logic.js
 ```
 
-Covers: directional slides, single/double merges, the "no triple-merge" rule, win detection, and game-over locking.
+Covers: directional slides, single/double merges, the "no triple-merge" rule, win detection, game-over locking, and the undo system (restore accuracy, one-step limit, no-op moves don't overwrite the snapshot, game-over rescue, grid↔tiles consistency).
 
 ## License
 

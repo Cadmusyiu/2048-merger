@@ -14,6 +14,8 @@ class Game {
         this.keepPlaying = false;
         this.nextId = 1;
         this._pendingRemoval = null;    // merged-away tiles awaiting DOM cleanup
+        this.prevState = null;          // one-step undo snapshot
+        this.lastGain = 0;              // score gained by the latest move (for +N popup)
         this.addRandomTile();
         this.addRandomTile();
     }
@@ -58,9 +60,13 @@ class Game {
         const vec = vectors[direction];
         if (!vec) return false;
 
+        // snapshot BEFORE mutating — kept only if the move actually changes the board
+        const snapshot = this.serialize();
+
         // reset per-move flags
         for (const t of this.tiles) { t.isNew = false; t.merged = false; }
         const removed = [];
+        this.lastGain = 0;
 
         const trav = this.buildTraversals(vec);
         let moved = false;
@@ -78,6 +84,7 @@ class Game {
                     nextTile.value *= 2;
                     nextTile.merged = true;
                     this.score += nextTile.value;
+                    this.lastGain += nextTile.value;
                     if (nextTile.value === 2048 && !this.won) this.won = true;
                     // `tile` slides to nextTile's cell then is retired
                     tile.row = nextTile.row;
@@ -96,12 +103,54 @@ class Game {
         }
 
         if (moved) {
+            this.prevState = snapshot;   // enable one-step undo
             this._pendingRemoval = removed;
             this.addRandomTile();
             if (this.score > this.best) { this.best = this.score; this.saveBest(); }
             if (!this.hasMoves()) { this.over = true; this.recordHighScore(); }
         }
         return moved;
+    }
+
+    // ---------- undo (one step) ----------
+    serialize() {
+        return {
+            grid: this.grid.map(row => row.map(t => t ? t.value : 0)),
+            score: this.score,
+            won: this.won,
+            keepPlaying: this.keepPlaying,
+        };
+    }
+
+    restore(state) {
+        this.grid = this.emptyGrid();
+        this.tiles = [];
+        this.score = state.score;
+        this.won = state.won;
+        this.keepPlaying = state.keepPlaying;
+        this.over = false;
+        this._pendingRemoval = null;
+        this.lastGain = 0;
+        for (let r = 0; r < this.size; r++) {
+            for (let c = 0; c < this.size; c++) {
+                const v = state.grid[r][c];
+                if (!v) continue;
+                const tile = {
+                    id: this.nextId++, value: v, row: r, col: c,
+                    isNew: false, merged: false, toBeRemoved: false, el: null,
+                };
+                this.grid[r][c] = tile;
+                this.tiles.push(tile);
+            }
+        }
+    }
+
+    // 悔一步：可在 game over 後使用（把你從死局救回來），連續 undo 不行
+    undo() {
+        if (!this.prevState) return false;
+        this.restore(this.prevState);
+        this.prevState = null;
+        return true;
     }
 
     buildTraversals(vec) {
@@ -177,6 +226,11 @@ function init() {
     const winModal = document.getElementById('win-modal');
     const finalScoreEl = document.getElementById('final-score');
     const rankingEl = document.getElementById('ranking-list');
+    const undoBtn = document.getElementById('undo-btn');
+    const gainEl = document.getElementById('score-gain');
+
+    // 觸覺回饋（支援的行動裝置才有）
+    function buzz(pattern) { if (navigator.vibrate) navigator.vibrate(pattern); }
 
     let game;
     let cellSize = 0;
@@ -185,7 +239,7 @@ function init() {
     // ---- layout ----
     function measureCell() {
         const w = boardEl.clientWidth;
-        cellSize = (w - 2 * BOARD_PADDING - 3 * BOARD_GAP) / game.size;
+        cellSize = (w - 2 * BOARD_PADDING - (game.size - 1) * BOARD_GAP) / game.size;
         for (const t of game.tiles) positionTile(t, false);
         for (const cell of bgEl.children) {
             cell.style.width = cellSize + 'px';
@@ -237,6 +291,7 @@ function init() {
     function render() {
         scoreEl.textContent = game.score;
         bestEl.textContent = game.best;
+        undoBtn.disabled = !game.prevState;
 
         for (const t of game.tiles) positionTile(t, true);
 
@@ -260,6 +315,7 @@ function init() {
     }
 
     function showGameOver() {
+        buzz(200);
         finalScoreEl.textContent = game.score;
         rankingEl.innerHTML = '';
         const scores = game.highScores.length ? game.highScores : [game.score];
@@ -283,7 +339,29 @@ function init() {
 
     function handleMove(direction) {
         const moved = game.move(direction);
-        if (moved) render();
+        if (moved) {
+            render();
+            if (game.lastGain > 0) showGain(game.lastGain);
+        }
+    }
+
+    // +N 得分浮動提示（合併才有）
+    function showGain(n) {
+        gainEl.textContent = '+' + n;
+        gainEl.classList.remove('float');
+        void gainEl.offsetWidth;   // reflow 重新觸發動畫
+        gainEl.classList.add('float');
+        buzz(15);
+    }
+
+    // Undo：tiles 重建（失去動畫身分），整個 tile layer 重繪
+    function handleUndo() {
+        if (!game.undo()) return;
+        gameOverModal.style.display = 'none';
+        winShown = game.won;   // 曾經贏過的局，undo 後不要重跳 win modal
+        tileLayer.innerHTML = '';
+        measureCell();
+        render();
     }
 
     // ---- input ----
@@ -315,6 +393,8 @@ function init() {
     // ---- buttons ----
     document.getElementById('restart-btn').addEventListener('click', newGame);
     document.getElementById('close-modal').addEventListener('click', newGame);
+    undoBtn.addEventListener('click', handleUndo);
+    document.getElementById('undo-death-btn').addEventListener('click', handleUndo);
     document.getElementById('keep-playing-btn').addEventListener('click', () => {
         game.keepPlaying = true;
         winModal.style.display = 'none';

@@ -98,5 +98,49 @@ Math.random = _r;
 ok('move that locks the board sets over=true', m11 === true && g.over === true,
    'moved=' + m11 + ' over=' + g.over + ' board=' + JSON.stringify(vals(g)));
 
+// 12. Undo restores the exact pre-move board and score
+g = setup([[2,2,4,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]]);
+g.score = 100;
+g.move('left');
+ok('undo 前提：move 有效且改變盤面', vals(g)[0].join(',') === '4,4,0,0' && g.score === 104);
+ok('undo 回傳 true 並還原盤面與分數',
+    g.undo() === true && vals(g)[0].join(',') === '2,2,4,0' && g.score === 100,
+    'got ' + vals(g)[0] + ' score=' + g.score);
+
+// 13. Double undo blocked（一步為限）
+ok('連續 undo 第二次被擋', g.undo() === false);
+
+// 14. Unmoved move does not overwrite the undo snapshot
+g = setup([[2,4,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]]);
+g.move('left');                 // no-op：已靠左且無可合併
+ok('無效移動不建立 undo snapshot', g.prevState === null);
+
+// 15. Undo out of game over（死局救回）
+g = setup([[2,2,8,16],[32,64,128,256],[4,8,16,32],[64,128,256,512]]);
+g.addRandomTile = Game.prototype.addRandomTile;
+const _r2 = Math.random; Math.random = () => 0;
+g.move('left');                 // 這步導致鎖盤 game over（同 test 11）
+Math.random = _r2;
+ok('undo 前提：盤面已 game over', g.over === true);
+ok('game over 後 undo 救回（over=false、盤面還原）',
+    g.undo() === true && g.over === false && vals(g)[0].join(',') === '2,2,8,16',
+    'over=' + g.over + ' row0=' + vals(g)[0]);
+
+// 16. lastGain 累計該步合併得分（雙合併 = 4+4）
+g = setup([[2,2,2,2],[0,0,0,0],[0,0,0,0],[0,0,0,0]]);
+g.move('left');
+ok('lastGain = 該步合併總分 (8)', g.lastGain === 8, 'lastGain=' + g.lastGain);
+g2 = setup([[2,4,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]]);
+g2.move('right');               // 純滑動無合併
+ok('純滑動 lastGain = 0', g2.lastGain === 0, 'lastGain=' + g2.lastGain);
+
+// 17. Undo 後 tiles/grid 一致性（每格 tile 的 row/col 與位置相符）
+g = setup([[2,2,0,0],[4,0,4,0],[0,0,0,0],[0,0,0,0]]);
+g.move('left');
+g.undo();
+let consistent = g.tiles.length === 4;
+for (const t of g.tiles) if (g.grid[t.row][t.col] !== t) consistent = false;
+ok('undo 後 grid ↔ tiles 完全一致', consistent);
+
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);
